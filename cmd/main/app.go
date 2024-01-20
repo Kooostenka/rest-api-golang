@@ -2,8 +2,7 @@ package main
 
 import (
 	"app/internal/user"
-	"fmt"
-	"log"
+	"app/pkg/logging"
 	"net"
 	"net/http"
 	"time"
@@ -11,16 +10,13 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func IndexHandler(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	name := params.ByName("name")
-	w.Write([]byte(fmt.Sprintf("hello %s", name)))
-}
-
 func main() {
-	fmt.Println("create router")
+	logger := logging.GetLogger()
+	logger.Info("create router")
 	router := httprouter.New()
 
-	handler := user.NewHandler()
+	logger.Info("register user handler")
+	handler := user.NewHandler(logger)
 	handler.Register(router)
 
 	start(router)
@@ -28,7 +24,8 @@ func main() {
 }
 
 func start(router *httprouter.Router) {
-
+	logger := logging.GetLogger()
+	logger.Info("start application")
 	listner, err := net.Listen("tcp", "127.0.0.1:1234")
 
 	if err != nil {
@@ -41,5 +38,6 @@ func start(router *httprouter.Router) {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	log.Fatalln(server.Serve(listner))
+	logger.Info("server is listening port 127.0.0.1:1234")
+	logger.Fatal(server.Serve(listner))
 }
